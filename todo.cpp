@@ -38,6 +38,7 @@ bool addCar(TrainCar* head, int position, CarType type, int maxLoad)
 	// Update type and maxLoad if exists
 	if (position < len)
 	{
+		pos = head;
 		for (size_t i = 0; i < position; i++)
 		{
 			if (pos)
@@ -116,8 +117,9 @@ bool deleteCar(TrainCar* head, int position)
 
 bool swapCar(TrainCar* head, int a, int b)
 {
-	TrainCar *pos, *first, *second, *tmp;
-	int len;
+	TrainCar *pos, *first, *second;
+	int len, load, maxLoad;
+	CarType type;
 
 	// Get the length
 	pos = head;
@@ -155,30 +157,24 @@ bool swapCar(TrainCar* head, int a, int b)
 	second = pos;
 
 	// Swap them
-	if (first && second && first->prev && second->prev)
-	{
-		tmp = first->prev;
-		first->prev = second->prev;
-		second->prev = tmp;
-	}
-	else
-		return false;
+	load = first->load;
+	maxLoad = first->maxLoad;
+	type = first->type;
 
-	if (first && second && first->next && second->next)
-	{
-		tmp = first->next;
-		first->next = second->next;
-		second->next = tmp;
-	}
-	else
-		return false;
+	first->load = second->load;
+	first->maxLoad = second->maxLoad;
+	first->type = second->type;
+
+	second->load = load;
+	second->maxLoad = maxLoad;
+	second->type = type;
 
 	return true;	
 }
 
 void sortTrain(TrainCar* head, bool ascending)
 {
-	TrainCar* pos, * first, * second, * tmp;
+	TrainCar* pos, * first, * second;
 	int len;
 
 	// Get the length
@@ -189,8 +185,9 @@ void sortTrain(TrainCar* head, bool ascending)
 		len++;
 		pos = pos->next;
 	}
+	len--;
 
-	for (size_t i = 0; i < len - 1; i++)
+	for (size_t i = 0; i < len; i++)
 	{
 		pos = head;
 		while (pos->next && pos->next->next)
@@ -201,19 +198,20 @@ void sortTrain(TrainCar* head, bool ascending)
 			if ((ascending && first->load > second->load) || (!ascending && first->load < second->load))
 			{
 				// Swap them
-				if (first->prev && second->prev)
-				{
-					tmp = first->prev;
-					first->prev = second->prev;
-					second->prev = tmp;
-				}
+				int load, maxLoad;
+				CarType type;
 
-				if (first->next && second->next)
-				{
-					tmp = first->next;
-					first->next = second->next;
-					second->next = tmp;
-				}
+				load = first->load;
+				maxLoad = first->maxLoad;
+				type = first->type;
+
+				first->load = second->load;
+				first->maxLoad = second->maxLoad;
+				first->type = second->type;
+
+				second->load = load;
+				second->maxLoad = maxLoad;
+				second->type = type;
 			}
 
 			pos = pos->next;
@@ -233,12 +231,12 @@ bool load(TrainCar* head, CarType type, int amount)
 		if (pos->type == type)
 		{
 			// Load
-			if (pos->maxLoad - pos->load <= amount)
-				pos->load += amount;
+			if (pos->maxLoad - pos->load >= rest)
+				pos->load += rest;
 			else
 			{
-				pos->load = pos->maxLoad;
 				rest -= pos->maxLoad - pos->load;
+				pos->load = pos->maxLoad;
 			}
 		}
 
@@ -264,13 +262,19 @@ bool unload(TrainCar* head, CarType type, int amount)
 	rest = amount;
 	while (pos && pos->type != HEAD)
 	{
-		if (pos->type == type)
+		if (pos->type == type && pos->load > 0)
 		{
 			// Unload
-			if (pos->load > 0)
+			if (pos->load <= rest)
 			{
 				rest -= pos->load;
 				pos->load = 0;
+			}
+			else
+			{
+				pos->load -= rest;
+				rest = 0;
+				break;
 			}
 		}
 
@@ -290,7 +294,7 @@ void printCargoStats(const TrainCar* head)
 	TrainCar* pos;
 
 	pos = head->next;
-	while (pos)
+	while (pos->next)
 	{
 		cout << enumToStringMapping[pos->type];
 		cout << ":";
@@ -308,46 +312,42 @@ void printCargoStats(const TrainCar* head)
 	cout << pos->load;
 	cout << "/";
 	cout << pos->maxLoad;
+	cout << endl;
 }
 
 void divide(const TrainCar* head,  TrainCar* results[CARGO_TYPE_COUNT])
 {
-	TrainCar* pos, * tmp, * newTrain;
+	TrainCar* pos, * tmp;
 	
+	// Init the results
+	for (size_t i = 0; i < CARGO_TYPE_COUNT; i++)
+	{
+		results[i] = createTrainHead();
+	}
+
 	pos = head->next;
 	while (pos)
 	{
-		if (!results[pos->type])
+		// Get length of train
+		tmp = results[pos->type - 1];
+		int len = 0;
+		while (tmp)
 		{
-			newTrain = createTrainHead();
-			addCar(newTrain, 1, pos->type, pos->maxLoad);
-			newTrain->next->load = pos->load;
-
-			results[pos->type] = newTrain;
-		}
-		else
-		{
-			// Get length of train
-			tmp = results[pos->type];
-			int len = 0;
-			while (tmp)
-			{
-				len++;
-				tmp = tmp->next;
-			}
-
-			// Add a car
-			addCar(results[pos->type], len, pos->type, pos->maxLoad);
-
-			// Go to the tail
-			tmp = results[pos->type];
-			while (tmp->next)
-				tmp = tmp->next;
-			
-			// Change the load of the car
-			tmp->load = pos->load;
+			len++;
+			tmp = tmp->next;
 		}
 
+		// Add a car
+		addCar(results[pos->type - 1], len, pos->type, pos->maxLoad);
+
+		// Go to the tail
+		tmp = results[pos->type - 1];
+		while (tmp->next)
+			tmp = tmp->next;
+		
+		// Change the load of the car
+		tmp->load = pos->load;
+		
 		pos = pos->next;
 	}
 
