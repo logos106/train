@@ -136,23 +136,21 @@ bool swapCar(TrainCar* head, int a, int b)
 
 	// Find the first
 	pos = head;
-	for (size_t i = 0; i < a; i++)
+	int index = 0;
+	while(pos = pos->next)
 	{
-		if (pos)
-			pos = pos->next;
-		else
-			return false;
+		index ++;
+		if (index == a) break;
 	}
 	first = pos;
 
 	// Find the second
 	pos = head;
-	for (size_t i = 0; i < b; i++)
+	index = 0;
+	while(pos = pos->next)
 	{
-		if (pos)
-			pos = pos->next;
-		else
-			return false;
+		index ++;
+		if (index == b) break;
 	}
 	second = pos;
 
