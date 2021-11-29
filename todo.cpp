@@ -36,7 +36,7 @@ bool addCar(TrainCar* head, int position, CarType type, int maxLoad)
 		return false;
 
 	// Update type and maxLoad if exists
-	if (position <= len)
+	if (position < len)
 	{
 		for (size_t i = 0; i < position; i++)
 		{
@@ -71,7 +71,8 @@ bool addCar(TrainCar* head, int position, CarType type, int maxLoad)
 	newCar->maxLoad = maxLoad; 
 	newCar->prev = last;
 	newCar->next = nullptr;
-
+	last->next = newCar;
+	
 	return true;
 }
 
