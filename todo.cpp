@@ -134,44 +134,48 @@ bool swapCar(TrainCar* head, int a, int b)
 
 	// Find the first
 	pos = head;
-	for (size_t i = 0; i < a; i++)
+	int index = 0;
+	while(pos = pos->next)
 	{
-		if (pos)
-			pos = pos->next;
-		else
-			return false;
+		index ++;
+		if (index == a) break;
 	}
 	first = pos;
 
 	// Find the second
 	pos = head;
-	for (size_t i = 0; i < b; i++)
+	index = 0;
+	while(pos = pos->next)
 	{
-		if (pos)
-			pos = pos->next;
-		else
-			return false;
+		index ++;
+		if (index == b) break;
 	}
 	second = pos;
 
-	// Swap them
-	if (first && second && first->prev && second->prev)
-	{
-		tmp = first->prev;
-		first->prev = second->prev;
-		second->prev = tmp;
-	}
-	else
-		return false;
+	tmp = new TrainCar; tmp->type = first->type; tmp->load = first->load; tmp->maxLoad = first->maxLoad;
+	first->type = second->type; second->type = tmp->type;
+	first->load = second->load; second->load = tmp->load;
+	first->maxLoad = second->maxLoad; second->maxLoad = tmp->maxLoad;
+	
 
-	if (first && second && first->next && second->next)
-	{
-		tmp = first->next;
-		first->next = second->next;
-		second->next = tmp;
-	}
-	else
-		return false;
+	// // Swap them
+	// if (first && second && first->prev && second->prev)
+	// {
+	// 	tmp = first->prev;
+	// 	first->prev = second->prev;
+	// 	second->prev = tmp;
+	// }
+	// else
+	// 	return false;
+
+	// if (first && second && first->next && second->next)
+	// {
+	// 	tmp = first->next;
+	// 	first->next = second->next;
+	// 	second->next = tmp;
+	// }
+	// else
+	// 	return false;
 
 	return true;	
 }
