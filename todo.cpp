@@ -234,52 +234,58 @@ bool unload(TrainCar* head, CarType type, int amount)
 	return true;
 }
 
+void sumUp(const TrainCar* head, CarType type, int& load, int& maxLoad)
+{
+	int sum1 = 0;
+	int sum2 = 0;
+
+	TrainCar* temp = head->next;
+	while (temp)
+	{
+		if (temp->type == type)
+		{
+			sum1 = sum1 + temp->load;
+			sum2 = sum2 + temp->maxLoad;
+		}
+
+		temp = temp->next;
+	}
+
+	load = sum1;
+	maxLoad = sum2;
+}
+
 void printCargoStats(const TrainCar* head)
 {
 	const char enumToStringMapping[6][8] = { "HEAD", "OIL", "COAL", "WOOD", "STEEL", "SUGAR" };
 
-	int load[CARGO_TYPE_COUNT];
-	int maxLoad[CARGO_TYPE_COUNT];
-	CarType type[CARGO_TYPE_COUNT];
+	int summed[CARGO_TYPE_COUNT];
 
-	// Initialize load
-	for (size_t i = 0; i < CARGO_TYPE_COUNT; i++)
-	{
-		type[i] = HEAD;
-		load[i] = 0;
-		maxLoad[i] = 0;
-	}		
+	// Initialize the summed flags
+	for (int k = 0; k < CARGO_TYPE_COUNT; k++)
+		summed[k] = 0;
 	
-	TrainCar* pos;
-	pos = head->next;
-	int index = 0;
-	while (pos)
+	TrainCar* temp = head->next;
+	int idx = 0;
+	while (temp)
 	{
-		// Find the index
-		for (int i = 0; i < CARGO_TYPE_COUNT; i++)
+		int load, maxLoad;
+		if (summed[temp->type - 1] == 0)
 		{
-			index = i;
-			if ((type[i] == HEAD) || (type[i] == pos->type)) break;
+			sumUp(head, temp->type, load, maxLoad);
+			summed[temp->type - 1] = 1;
+
+			if (idx > 0)
+				cout << ","; 
+			cout << enumToStringMapping[temp->type];
+			cout << ":";
+			cout << load;
+			cout << "/";
+			cout << maxLoad;
+			idx++;
 		}
 
-		type[index] = pos->type;
-		load[index] += pos->load;
-		maxLoad[index] += pos->maxLoad;
-
-		pos = pos->next;
-	}
-
-	for (size_t i = 0; i < CARGO_TYPE_COUNT; i++)
-	{
-		if (type[i] == HEAD) break;
-
-		cout << enumToStringMapping[type[i]];
-		cout << ":";
-		cout << load[i];
-		cout << "/";
-		cout << maxLoad[i];
-		if ((i < CARGO_TYPE_COUNT - 1) && (load[i + 1] != -1))
-			cout << ",";
+		temp = temp->next;
 	}
 
 	cout << endl;
@@ -287,51 +293,37 @@ void printCargoStats(const TrainCar* head)
 
 void divide(const TrainCar* head,  TrainCar* results[CARGO_TYPE_COUNT])
 {
-	TrainCar* pos, * tmp;
-	int index;
-	
 	// Init the results
 	for (size_t i = 0; i < CARGO_TYPE_COUNT; i++)
 	{
 		results[i] = createTrainHead();
 	}
 
-	pos = head->next;
-	while (pos)
+	TrainCar* temp = head->next;
+	while (temp)
 	{
 		// Find the index
-		index = 0;
+		int index = 0;
 		for (int i = 0; i < CARGO_TYPE_COUNT; i++)
 		{
 			if (!results[i]) continue;
 
 			index = i; 
-			if ((results[i]->next == nullptr) || (results[i]->next->type == pos->type))
+			if ((results[i]->next == nullptr) || (results[i]->next->type == temp->type))
 				break;
 		}
 
-		// Get length of train
-		tmp = results[index];
-		int len = 0;
-		while (tmp)
-		{
-			len++;
-			tmp = tmp->next;
-		}
+		int size = getSize(results[index]);
 
-		// Add a car
-		addCar(results[index], len, pos->type, pos->maxLoad);
+		addCar(results[index], size, temp->type, temp->maxLoad);
 
-		// Go to the tail
-		tmp = results[index];
-		while (tmp && tmp->next)
-			tmp = tmp->next;
-		
-		// Change the load of the car
-		if (tmp)
-			tmp->load = pos->load;
-		
-		pos = pos->next;
+		// Go to the tail and change the load
+		TrainCar *temp2 = results[index];
+		while (temp2 && temp2->next)
+			temp2 = temp2->next;
+		temp2->load = temp->load;
+				
+		temp = temp->next;
 	}
 }
 
