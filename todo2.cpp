@@ -4,10 +4,10 @@
 
 using namespace std;
 //you are NOT allowed to include any additional library; see FAQ
-
 #define MAX 9000
 TrainCar* optimizeArray[MAX];
 int optSum = 0, cnt = 0;
+
 
 TrainCar* createTrainHead()
 {
@@ -21,30 +21,23 @@ TrainCar* createTrainHead()
 	return head;
 }
 
-int getSize(TrainCar* head)
-{	
-	TrainCar* temp = head;
-	int size = 0;
-	do
-	{
-		size++;
-		temp = temp->next;
-	} while (temp);
-
-	return size;
-}
-
 bool addCar(TrainCar* head, int position, CarType type, int maxLoad)
 {
-	int size = getSize(head);	
+	TrainCar *pos;
+	int len;
 
-	if (type == HEAD)
+	// Get length of train
+	pos = head;
+	len = 0; 
+	while (pos)
+	{	
+		len++;
+		pos = pos->next;
+	}		
+
+	// Fails when
+	if (type == HEAD || position <= 0 || position > len || maxLoad <= 0)
 		return false;
-
-	if (position <= 0 || position > size)
-		return false;
-
-	if (maxLoad <= 0)
 
 	// Update type and maxLoad if exists
 	if (position < len)
