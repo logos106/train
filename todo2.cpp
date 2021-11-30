@@ -8,7 +8,6 @@ using namespace std;
 TrainCar* optimizeArray[MAX];
 int optSum = 0, cnt = 0;
 
-
 TrainCar* createTrainHead()
 {
     TrainCar* head = new TrainCar;
@@ -125,6 +124,8 @@ bool swapCar(TrainCar* head, int a, int b)
 	TrainCar *pos, *first, *second;
 	int len, load, maxLoad;
 	CarType type;
+
+	if (a == b) return true;
 
 	// Get the length
 	pos = head;

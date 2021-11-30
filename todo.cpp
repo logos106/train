@@ -45,217 +45,156 @@ bool addCar(TrainCar* head, int position, CarType type, int maxLoad)
 		return false;
 
 	if (maxLoad <= 0)
+		return false;
 
-	// Update type and maxLoad if exists
-	if (position < len)
-	{
-		pos = head;
-		for (size_t i = 0; i < position; i++)
-		{
-			if (pos)
-				pos = pos->next;
-			else
-				return false;
-		}
-		
-		if (pos)
-		{
-			pos->type = type;
-			pos->maxLoad = maxLoad;
-		}
-		
-		return true;
-	}
+	// Create a new cargo
+	TrainCar *newOne = new TrainCar;
 
-	// Add new car to train
-	TrainCar *newCar, *last;
-	newCar = new TrainCar;
+	// Get the tail
+	while (head->next)
+		head = head->next;
+	TrainCar *tail = head;
 
-	// Get the last
-	pos = head;
-	while (pos->next)
-		pos = pos->next;
-	last = pos;
+	// Link it to the tail
+	tail->next = newOne;
 
-	// Set the attributes of the car
-	newCar->type = type; 
-	newCar->load = 0; 
-	newCar->maxLoad = maxLoad; 
-	newCar->prev = last;
-	newCar->next = nullptr;
-	last->next = newCar;
+	// Set attributes
+	newOne->type = type;
+	newOne->load = 0;
+	newOne->maxLoad = maxLoad;
+	newOne->prev = tail;
+	newOne->next = nullptr;	
 	
 	return true;
 }
 
 bool deleteCar(TrainCar* head, int position)
 {
-	TrainCar *pos;
-	int len;
+	int size = getSize(head);
 
-	// Get the length
-	pos = head;
-	len = 0;
-	while (pos)
-	{
-		len++;
-		pos = pos->next;
-	}
-
-	// Check the position
-	if (position < 1 || position >= len)
+	if (position < 1 || position >= size)
 		return false;
 
-	// Find the car
-	pos = head;
-	for (size_t i = 0; i < position; i++)
+	// Go to the position and delete it
+	int p = 0;
+	TrainCar* temp = head->next;
+	do
 	{
-		if (pos)
-			pos = pos->next;
-		else
-			return false;
-	}
+		if (p++ == position)
+		{
+			if (temp->next)
+			{
+				temp->next->prev = temp->prev;
+				temp->prev->next = temp->next;
+			}
 
-	// Remove it
-	if (pos && pos->prev)
-	{
-		pos->next->prev = pos->prev;
-		pos->prev->next = pos->next;
-		delete pos;
-	}
+			delete temp;
+			break;
+		}
+	} while (temp = temp->next);
 
 	return true;
 }
 
 bool swapCar(TrainCar* head, int a, int b)
 {
-	TrainCar *pos, *first, *second;
-	int len, load, maxLoad;
-	CarType type;
+	if (a == b) return true;
 
-	// Get the length
-	pos = head;
-	len = 0;
-	while (pos)
-	{
-		len++;
-		pos = pos->next;
-	}
+	int size = getSize(head);
 
-	// Check the position
-	if (a < 1 || a >= len || b < 1 || b >= len)
+	if (a < 1 || a >= size)
 		return false;
 
-	// Find the first
-	pos = head;
-	for (size_t i = 0; i < a; i++)
+	if (b < 1 || b >= size)
+		return false;
+
+	// Get to the a
+	TrainCar *aaa = head->next;
+	int k = 0;
+	while (aaa)
 	{
-		if (pos)
-			pos = pos->next;
-		else
-			return false;
+		if (k++ == a) break;
+		aaa = aaa->next;
 	}
-	first = pos;
-
-	// Find the second
-	pos = head;
-	for (size_t i = 0; i < b; i++)
+	
+	// Get to the b
+	TrainCar* bbb = head->next;
+	k = 0;
+	while (bbb)
 	{
-		if (pos)
-			pos = pos->next;
-		else
-			return false;
+		if (k++ == b) break;
+		bbb = bbb->next;
 	}
-	second = pos;
 
-	// Swap them
-	load = first->load;
-	maxLoad = first->maxLoad;
-	type = first->type;
+	// Swap their prev and next
+	TrainCar* temp;
+	if (aaa && bbb)
+	{
+		temp = aaa->prev;
+		aaa->prev = bbb->prev;
+		bbb->prev = temp;
 
-	first->load = second->load;
-	first->maxLoad = second->maxLoad;
-	first->type = second->type;
-
-	second->load = load;
-	second->maxLoad = maxLoad;
-	second->type = type;
+		temp = aaa->next;
+		bbb->next = aaa->next;
+		aaa->next = temp;
+	}
 
 	return true;	
 }
 
 void sortTrain(TrainCar* head, bool ascending)
 {
-	TrainCar* pos, * first, * second;
-	int len;
-
-	// Get the length
-	pos = head;
-	len = 0;
-	while (pos)
+	int size = getSize(head);
+	
+	for (int k = 0; k < size - 1; k++)
 	{
-		len++;
-		pos = pos->next;
-	}
-	len--;
-
-	for (size_t i = 0; i < len; i++)
-	{
-		pos = head;
-		while (pos->next && pos->next->next)
+		TrainCar* aaa = head->next;
+		TrainCar* bbb = (aaa->next) ? aaa->next : nullptr;
+		if (!bbb) break;
+		
+		do
 		{
-			first = pos->next;
-			second = pos->next->next;
-
-			if ((ascending && first->load > second->load) || (!ascending && first->load < second->load))
+			// Swap the cars if needed
+			if ((ascending && aaa->load > bbb->load) || (!ascending && aaa->load < bbb->load))
 			{
-				// Swap them
-				int load, maxLoad;
-				CarType type;
+				TrainCar* temp;
+				if (aaa && bbb)
+				{
+					temp = aaa->prev;
+					aaa->prev = bbb->prev;
+					bbb->prev = temp;
 
-				load = first->load;
-				maxLoad = first->maxLoad;
-				type = first->type;
-
-				first->load = second->load;
-				first->maxLoad = second->maxLoad;
-				first->type = second->type;
-
-				second->load = load;
-				second->maxLoad = maxLoad;
-				second->type = type;
+					temp = aaa->next;
+					bbb->next = aaa->next;
+					aaa->next = temp;
+				}
 			}
-
-			pos = pos->next;
-		}
+		} while ((aaa = bbb) && (bbb = bbb->next));
 	}
 }
 
 bool load(TrainCar* head, CarType type, int amount)
 {
-	TrainCar *pos;
-	int rest;
-
-	pos = head;
-	rest = amount;
-	while (pos)
+	TrainCar* temp = head->next;
+	int remain = amount;
+	do
 	{
-		if (pos->type == type)
+		if (temp->type == type)
 		{
-			// Load
-			if (pos->maxLoad - pos->load >= rest)
-				pos->load += rest;
+			int cap = temp->maxLoad - temp->load;
+			if (cap >= remain)
+				temp->load += remain;
 			else
 			{
-				rest -= pos->maxLoad - pos->load;
-				pos->load = pos->maxLoad;
+				remain = remain - temp->maxLoad - temp->load;
+				temp->load = temp->maxLoad;
 			}
 		}
 
-		pos = pos->next;
-	}
+		temp = temp->next;
+	} while (temp);
 
-	if (rest > 0)
+	if (remain > 0)
 		return false;
 
 	return true;
@@ -263,37 +202,33 @@ bool load(TrainCar* head, CarType type, int amount)
 
 bool unload(TrainCar* head, CarType type, int amount)
 {
-	TrainCar* pos;
-	int rest;
-
 	// Go to the tail
-	pos = head;
-	while (pos && pos->next)
-		pos = pos->next;
+	TrainCar* tail = head;
+	while (tail && tail->next)
+		tail = tail->next;
 
-	rest = amount;
-	while (pos && pos->type != HEAD)
+	int toUnload = amount;
+	while (tail && tail->type != HEAD)
 	{
-		if (pos->type == type && pos->load > 0)
+		if (tail->type == type && tail->load > 0)
 		{
-			// Unload
-			if (pos->load <= rest)
+			if (tail->load <= toUnload)
 			{
-				rest -= pos->load;
-				pos->load = 0;
+				toUnload = toUnload - tail->load;
+				tail->load = 0;
 			}
 			else
 			{
-				pos->load -= rest;
-				rest = 0;
+				tail->load = tail->load - toUnload;
+				toUnload = 0;
 				break;
 			}
 		}
 
-		pos = pos->prev;
+		tail = tail->prev;
 	}
 
-	if (rest > 0)
+	if (toUnload > 0)
 		return false;
 
 	return true;
