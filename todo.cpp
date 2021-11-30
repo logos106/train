@@ -76,11 +76,11 @@ bool deleteCar(TrainCar* head, int position)
 		return false;
 
 	// Go to the position and delete it
-	int p = 0;
+	int p = 1;
 	TrainCar* temp = head->next;
-	do
+	while (temp)
 	{
-		if (p++ == position)
+		if (p == position)
 		{
 			if (temp->next)
 			{
@@ -91,7 +91,10 @@ bool deleteCar(TrainCar* head, int position)
 			delete temp;
 			break;
 		}
-	} while (temp = temp->next);
+
+		temp = temp->next;
+		p++;
+	}
 
 	return true;
 }
