@@ -6,8 +6,8 @@ using namespace std;
 //you are NOT allowed to include any additional library; see FAQ
 
 #define MAX 9000
-TrainCar* optimizeArray[MAX];
-int optSum = 0, cnt = 0;
+TrainCar* sub_array[MAX];
+int subSum = 0, sub_size = 0;
 
 TrainCar* createTrainHead()
 {
@@ -335,23 +335,23 @@ void divide(const TrainCar* head,  TrainCar* results[CARGO_TYPE_COUNT])
 	}
 }
 
-void subset_sum(TrainCar* o[], TrainCar* t[], int o_size, int t_size, int sum, int ite, int const target_sum)
+void subset_finder(TrainCar* origins[], TrainCar* temps[], int origin_size, int temp_size, int sum, int ite, int const upper)
 {	
-	for (int i = ite; i < o_size; i++) {
-		t[t_size] = o[i];
-		if (sum + o[i]->load > target_sum) continue;
-		subset_sum(o, t, o_size, t_size + 1, sum + o[i]->load, i + 1, target_sum);
+	for (int i = ite; i < origin_size; i++) {
+		temps[temp_size] = origins[i];
+		if (sum + origins[i]->load > upper) continue;
+		subset_finder(origins, temps, origin_size, temp_size + 1, sum + origins[i]->load, i + 1, upper);
 	}
 	
-	if (target_sum >= sum && optSum < sum)
+	if (upper >= sum && subSum < sum)
 	{
-		optSum = sum;
+		subSum = sum;
 
-		cnt = t_size;
-		for (int i = 0; i < t_size; ++i) optimizeArray[i] = t[i];
+		sub_size = temp_size;
+		for (int i = 0; i < temp_size; ++i) sub_array[i] = temps[i];
 			
-		if (ite < o_size)
-			subset_sum(o, t, o_size, t_size - 1, sum - o[ite]->load, ite + 1, target_sum);
+		if (ite < origin_size)
+			subset_finder(origins, temps, origin_size, temp_size - 1, sum - origins[ite]->load, ite + 1, upper);
 
 		return;
 	}
@@ -359,39 +359,44 @@ void subset_sum(TrainCar* o[], TrainCar* t[], int o_size, int t_size, int sum, i
 
 TrainCar* optimizeForMaximumPossibleCargos(const TrainCar* head, int upperBound)
 {
-	TrainCar* pos;
-	pos = head->next->prev;
+	TrainCar *pos, *tempArray[MAX], *originals[MAX];
+
+	pos = head->next;
+	pos = pos->prev;
+
 	int length = 0;
 	while (pos = pos->next) {
 		length++;
 	}
-	pos = head->next->prev;
-	TrainCar* candidates[MAX], * originals[MAX];
+
+	pos = head->next;
+	pos = pos->prev;
+
 	int i = 0;
 	originals[0] = pos;
-	candidates[0] = nullptr;
+	tempArray[0] = nullptr;
 	while (pos = pos->next)
 	{
 		originals[i] = pos;
-		candidates[i++] = nullptr;
+		tempArray[i++] = nullptr;
 	}
-	subset_sum(originals, candidates, length, 0, 0, 0, upperBound);
+	subset_finder(originals, tempArray, length, 0, 0, 0, upperBound);
 
-	TrainCar* train = createTrainHead(), *p;
-	p = train;
+	TrainCar* n_train = createTrainHead(), *p;
+	p = n_train;
 	
-	for (int i = 0; i < cnt; ++i) {	 
-		TrainCar* newCar = new TrainCar;
-		 newCar->load = optimizeArray[i]->load;
-		 newCar->maxLoad = optimizeArray[i]->maxLoad;
-		 newCar->type = optimizeArray[i]->type; 
-		 newCar->prev = p;
-		 newCar->next = nullptr;
-		 p->next = newCar;
-		 p = newCar;
+	for (int i = 0; i < sub_size; ++i) {	 
+		TrainCar* cargo = new TrainCar;
+		cargo->load = sub_array[i]->load;
+		cargo->maxLoad = sub_array[i]->maxLoad;
+		cargo->type = sub_array[i]->type; 
+		cargo->prev = p;
+		cargo->next = nullptr;
+		p->next = cargo;
+		p = cargo;
 	}
 
-	return train;
+	return n_train;
 }
 
 void deallocateTrain(TrainCar* head)
